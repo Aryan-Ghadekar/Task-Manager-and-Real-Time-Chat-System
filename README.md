@@ -1,10 +1,9 @@
 # JIRA-like Task Manager and Real-Time Chat System
 
 A **comprehensive C++ OOP-based project** that combines **enterprise-grade task management** with a **real-time chat system**. Built with **advanced socket programming, multithreading, and modern OOP principles**, this JIRA-inspired platform enables teams to collaborate effectively with real-time task tracking and communication.
-
 ---
 
-## ✨ Enhanced Features
+## Enhanced Features
 
 - 🔗 **Real-time Communication** – Multiple clients with instant updates via TCP sockets
 - 📋 **Advanced Task Management** – Complete JIRA-like task lifecycle with status tracking
@@ -18,14 +17,18 @@ A **comprehensive C++ OOP-based project** that combines **enterprise-grade task 
 - 🎯 **Task Prioritization** – Critical, High, Medium, Low priority levels
 - 📊 **Real-time Status Tracking** – TODO, In Progress, In Review, Done, Blocked
 - 🔄 **Live Updates** – Instant notifications for all task and chat activities
+- 🛡️ **Robust Error Handling** – Comprehensive error management and graceful failure recovery
+- 👀 **Online User Tracking** – Real-time display of connected users with roles
+- 💬 **Enhanced Private Messaging** – Improved visibility and delivery confirmation
+- 🔧 **Stability Improvements** – Enhanced connection handling and data validation
 
 ---
 
-## 📂 Project Structure
+## Project Structure
 
 ```
 Task-Manager-and-Real-Time-Chat-System/
-├── include/                    # Header files (OOP classes)
+├── include/                   # Header files (OOP classes)
 │   ├── User.hpp               # User management
 │   ├── Task.hpp               # Task entity definition
 │   ├── Chat.hpp               # Chat message handling
@@ -52,7 +55,7 @@ Task-Manager-and-Real-Time-Chat-System/
 
 ---
 
-## ⚙️ Requirements
+## Requirements
 
 - **C++11 or later**
 - **POSIX environment** (Linux / macOS)
@@ -62,7 +65,7 @@ Task-Manager-and-Real-Time-Chat-System/
 
 ---
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Build the Project
 
@@ -104,7 +107,7 @@ make all
 
 ---
 
-## 🎮 Usage
+## Usage
 
 ### Authentication
 ```bash
@@ -153,11 +156,18 @@ make all
 
 - **Private Message:**
   ```bash
-  /pm 2 Can you review my code changes?
+  /pm dev1 Can you review my code changes?
+  /pm 2 Can you review my code changes?  # Also works with user ID
+  ```
+
+- **View Online Users:**
+  ```bash
+  /online
   ```
 
 ### System Commands
 ```bash
+/online  # Show online users with roles
 /help    # Show all commands
 /quit    # Exit application
 ```
@@ -172,7 +182,7 @@ make all
 
 ---
 
-## 🏗️ Architecture
+## Architecture
 
 ### Core Components
 
@@ -206,7 +216,7 @@ make all
 
 ---
 
-## 🔧 Development
+## Development
 
 ### Build Options
 
@@ -249,15 +259,14 @@ make clean      # Clean build files
 
 ---
 
-## 📝 License
+## License
 
 This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
 
-**Copyright (c) 2025 Pranav Jagatprem Gawande**
 
 ---
 
-## 🤝 Contributing
+## Contributing
 
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/amazing-feature`)
@@ -267,13 +276,13 @@ This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) 
 
 ---
 
-## 📞 Support
+## Support
 
 For questions or support, please open an issue in the repository.
 
 ---
 
-## 📈 Performance & Scalability
+## Performance & Scalability
 
 - **Concurrent Users**: Supports 100+ simultaneous connections
 - **Message Throughput**: 1000+ messages/second
@@ -281,13 +290,17 @@ For questions or support, please open an issue in the repository.
 - **Thread Pool**: Configurable thread pool for client handling
 - **Load Balancing**: Ready for horizontal scaling
 
-## 🛡️ Security Features
+## Security & Reliability Features
 
 - **Authentication**: User login with session management
 - **Authorization**: Role-based access control
 - **Input Validation**: Command and data sanitization
 - **Thread Safety**: Mutex protection against race conditions
 - **Session Management**: Secure token-based sessions
+- **Error Handling**: Comprehensive exception handling and graceful degradation
+- **Connection Management**: Robust socket handling with automatic cleanup
+- **Data Validation**: Input sanitization and format validation
+- **Fault Tolerance**: Graceful handling of network failures and disconnections
 
 ---
 
@@ -297,7 +310,7 @@ For questions or support, please open an issue in the repository.
 make all
 
 Copy
-✅ Build successful!
+Build successful!
 
 2. Run the Server
 ./server
@@ -319,3 +332,163 @@ bash
 # Create tasks, chat, etc.
 /help
 
+
+
+
+# Project Enhancements Summary
+
+## 🎯 Enhancement Goals Achieved
+
+### 1. Robust Error Handling
+- **Server-side**: Comprehensive try-catch blocks in all critical functions
+- **Client-side**: Enhanced connection error handling and input validation
+- **Network**: Safe message sending with MSG_NOSIGNAL flag and error checking
+- **File Operations**: Protected file I/O with proper error reporting
+- **Input Validation**: Command parsing with format validation and sanitization
+
+### 2. Fixed Chat Message Visibility Issues
+- **Private Messaging**: Enhanced delivery confirmation and error reporting
+- **Message Routing**: Improved target user validation and online status checking
+- **Visibility**: Clear sender confirmation for private messages
+- **Logging**: Enhanced chat logging with message type indicators
+
+### 3. All Features Fully Functional
+- **Task Management**: Create, assign, update status, set priority, add comments
+- **User Management**: Login, authentication, role-based permissions
+- **Chat System**: Public chat, private messaging, system notifications
+- **Data Persistence**: Task and chat history saving/loading
+- **Real-time Updates**: Live broadcasting of all activities
+
+### 4. Online Members Display Feature
+- **Real-time Tracking**: Live display of connected users with roles
+- **Command**: New `/online` command to view current users
+- **Auto-notifications**: Automatic updates when users join/leave
+- **Role Display**: Shows user roles (Admin, PM, Developer, Tester)
+
+## 🔧 Technical Improvements
+
+### Error Handling Enhancements
+```cpp
+// Example: Safe message sending
+bool sendSafeMessage(int socket, const std::string& message) {
+    try {
+        ssize_t result = send(socket, message.c_str(), message.size(), MSG_NOSIGNAL);
+        return result != -1;
+    } catch (const std::exception& e) {
+        std::cerr << "Error sending message: " << e.what() << std::endl;
+        return false;
+    }
+}
+```
+
+### Online Users Feature
+```cpp
+// Real-time online user tracking
+std::vector<std::string> getOnlineUsers() {
+    std::vector<std::string> onlineUsers;
+    for (const auto& pair : users) {
+        if (pair.second.getOnlineStatus()) {
+            onlineUsers.push_back(pair.first + " (" + pair.second.getRoleString() + ")");
+        }
+    }
+    return onlineUsers;
+}
+```
+
+### Enhanced Private Messaging
+- Target user validation before sending
+- Delivery confirmation to sender
+- Improved error messages for failed deliveries
+- Better logging of private message activities
+
+## 📋 New Commands Added
+
+### `/online`
+- **Purpose**: Display currently online users with their roles
+- **Usage**: `/online`
+- **Output**: List of online users with role information
+
+### Enhanced `/mytasks`
+- **Purpose**: Show tasks assigned to the current user
+- **Usage**: `/mytasks`
+- **Output**: Filtered list of user's assigned tasks
+
+### Enhanced `/comment`
+- **Purpose**: Add comments to tasks with error handling
+- **Usage**: `/comment <taskId> <comment text>`
+- **Features**: Input validation and error reporting
+
+### Enhanced `/priority`
+- **Purpose**: Set task priority with validation
+- **Usage**: `/priority <taskId> <LOW|MEDIUM|HIGH|CRITICAL>`
+- **Features**: Priority validation and error handling
+
+## Stability Improvements
+
+### Connection Management
+- Graceful handling of client disconnections
+- Proper socket cleanup on errors
+- Enhanced connection state tracking
+- Automatic user status updates on disconnect
+
+### Data Validation
+- Input sanitization for all commands
+- Format validation for task IDs and user IDs
+- Empty message prevention
+- Command parameter validation
+
+### Thread Safety
+- Enhanced mutex protection
+- Safe client list management
+- Protected shared resource access
+- Deadlock prevention measures
+
+## 🚀 Performance Enhancements
+
+### Network Optimization
+- MSG_NOSIGNAL flag for reliable message sending
+- Reduced blocking operations
+- Better error recovery mechanisms
+- Optimized broadcast operations
+
+### Memory Management
+- Proper resource cleanup
+- Exception-safe operations
+- Reduced memory leaks
+- Efficient data structures
+
+## 📊 Testing & Verification
+
+### Manual Testing Checklist
+- Server startup and shutdown
+- Multiple client connections
+- User authentication and authorization
+- Task creation and management
+- Private and public messaging
+- Online user tracking
+- Error condition handling
+- Graceful disconnection handling
+
+### Error Scenarios Tested
+- Invalid command formats
+- Non-existent task IDs
+- Invalid user IDs for private messages
+- Empty message handling
+- Network disconnection scenarios
+- File I/O error conditions
+
+## 🚀 Quick Start
+
+```bash
+# Build the enhanced project
+make clean && make all
+
+# Run the test script
+./test_enhancements.sh
+
+# Start server
+./server
+
+# Connect clients (in separate terminals)
+./client
+```
