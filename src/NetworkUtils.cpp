@@ -5,6 +5,7 @@
 #include <sstream>
 #include <chrono>
 #include <iomanip>
+#include <iostream>
 #include <sys/socket.h>
 
 std::string NetworkUtils::formatMessage(const std::string& type, const std::string& data) {
@@ -43,7 +44,14 @@ std::string NetworkUtils::serializeUser(const User& user) {
 void NetworkUtils::broadcastToAll(const std::vector<ClientInfo>& clients, const std::string& message) {
     for (const auto& client : clients) {
         if (client.authenticated) {
-            send(client.socketId, message.c_str(), message.size(), 0);
+            try {
+                ssize_t result = send(client.socketId, message.c_str(), message.size(), MSG_NOSIGNAL);
+                if (result < 0) {
+                    std::cerr << "Failed to send to client " << client.socketId << std::endl;
+                }
+            } catch (const std::exception& e) {
+                std::cerr << "Error broadcasting to client " << client.socketId << ": " << e.what() << std::endl;
+            }
         }
     }
 }
@@ -52,16 +60,36 @@ void NetworkUtils::broadcastToUsers(const std::vector<ClientInfo>& clients, cons
     for (const auto& client : clients) {
         if (client.authenticated && 
             std::find(userIds.begin(), userIds.end(), client.userId) != userIds.end()) {
-            send(client.socketId, message.c_str(), message.size(), 0);
+            try {
+                ssize_t result = send(client.socketId, message.c_str(), message.size(), MSG_NOSIGNAL);
+                if (result < 0) {
+                    std::cerr << "Failed to send to user " << client.userId << std::endl;
+                }
+            } catch (const std::exception& e) {
+                std::cerr << "Error sending to user " << client.userId << ": " << e.what() << std::endl;
+            }
         }
     }
 }
 
 void NetworkUtils::sendToUser(const std::vector<ClientInfo>& clients, int userId, const std::string& message) {
+    bool messageSent = false;
     for (const auto& client : clients) {
         if (client.authenticated && client.userId == userId) {
-            send(client.socketId, message.c_str(), message.size(), 0);
+            try {
+                ssize_t result = send(client.socketId, message.c_str(), message.size(), MSG_NOSIGNAL);
+                if (result >= 0) {
+                    messageSent = true;
+                } else {
+                    std::cerr << "Failed to send to user " << userId << std::endl;
+                }
+            } catch (const std::exception& e) {
+                std::cerr << "Error sending to user " << userId << ": " << e.what() << std::endl;
+            }
         }
+    }
+    if (!messageSent) {
+        std::cerr << "User " << userId << " not found or not online" << std::endl;
     }
 }
 

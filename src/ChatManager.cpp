@@ -2,6 +2,8 @@
 #include "../include/Chat.hpp"
 #include <fstream>
 #include <algorithm>
+#include <iostream>
+#include <stdexcept>
 
 ChatManager::ChatManager() : nextMessageId(1) {
     loadFromFile();
@@ -133,15 +135,38 @@ std::vector<int> ChatManager::getUserSockets(int userId) const {
 }
 
 void ChatManager::saveToFile() const {
-    std::ofstream file("data/chatlog.txt", std::ios::app);
-    if (file.is_open() && !messages.empty()) {
-        const auto& lastMessage = messages.back();
-        file << lastMessage.getTimestamp() << " [" << lastMessage.getSenderName() << "] " 
-             << lastMessage.getContent() << "\n";
-        file.close();
+    try {
+        std::ofstream file("data/chatlog.txt", std::ios::app);
+        if (file.is_open() && !messages.empty()) {
+            const auto& lastMessage = messages.back();
+            file << lastMessage.getTimestamp() << " [" << lastMessage.getSenderName() << "] " 
+                 << lastMessage.getContent();
+            if (lastMessage.getType() == MessageType::PRIVATE) {
+                file << " (Private to user " << lastMessage.getTargetUserId() << ")";
+            }
+            file << "\n";
+            file.close();
+        } else {
+            std::cerr << "Failed to open chatlog.txt for writing" << std::endl;
+        }
+    } catch (const std::exception& e) {
+        std::cerr << "Error saving chat to file: " << e.what() << std::endl;
     }
 }
 
 void ChatManager::loadFromFile() {
-    // Load chat history from file - simplified for brevity
+    try {
+        std::ifstream file("data/chatlog.txt");
+        if (file.is_open()) {
+            std::string line;
+            while (std::getline(file, line)) {
+                // Parse and load chat history if needed
+                // For now, just count existing messages to set nextMessageId
+                nextMessageId++;
+            }
+            file.close();
+        }
+    } catch (const std::exception& e) {
+        std::cerr << "Error loading chat from file: " << e.what() << std::endl;
+    }
 }

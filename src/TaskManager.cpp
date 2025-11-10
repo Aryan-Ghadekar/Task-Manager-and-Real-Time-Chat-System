@@ -2,35 +2,51 @@
 #include "../include/Task.hpp"
 #include <fstream>
 #include <algorithm>
+#include <iostream>
+#include <stdexcept>
 
 TaskManager::TaskManager() : nextTaskId(1) {
     loadFromFile();
 }
 
 int TaskManager::createTask(const std::string& title, const std::string& description, int reporterId, const std::string& projectKey) {
-    std::lock_guard<std::mutex> lock(taskMutex);
-    
-    Task newTask(nextTaskId, title, description, reporterId, projectKey);
-    tasks.push_back(newTask);
-    projectTasks[projectKey].push_back(nextTaskId);
-    
-    int taskId = nextTaskId;
-    nextTaskId++;
-    
-    saveToFile();
-    return taskId;
+    try {
+        std::lock_guard<std::mutex> lock(taskMutex);
+        
+        if (title.empty()) {
+            throw std::invalid_argument("Task title cannot be empty");
+        }
+        
+        Task newTask(nextTaskId, title, description, reporterId, projectKey);
+        tasks.push_back(newTask);
+        projectTasks[projectKey].push_back(nextTaskId);
+        
+        int taskId = nextTaskId;
+        nextTaskId++;
+        
+        saveToFile();
+        return taskId;
+    } catch (const std::exception& e) {
+        std::cerr << "Error creating task: " << e.what() << std::endl;
+        return -1;
+    }
 }
 
 bool TaskManager::updateTaskStatus(int taskId, TaskStatus status, int userId) {
-    std::lock_guard<std::mutex> lock(taskMutex);
-    
-    Task* task = getTaskById(taskId);
-    if (task) {
-        task->setStatus(status);
-        saveToFile();
-        return true;
+    try {
+        std::lock_guard<std::mutex> lock(taskMutex);
+        
+        Task* task = getTaskById(taskId);
+        if (task) {
+            task->setStatus(status);
+            saveToFile();
+            return true;
+        }
+        return false;
+    } catch (const std::exception& e) {
+        std::cerr << "Error updating task status: " << e.what() << std::endl;
+        return false;
     }
-    return false;
 }
 
 bool TaskManager::updateTaskPriority(int taskId, TaskPriority priority, int userId) {
@@ -46,15 +62,20 @@ bool TaskManager::updateTaskPriority(int taskId, TaskPriority priority, int user
 }
 
 bool TaskManager::assignTask(int taskId, int assigneeId, int userId) {
-    std::lock_guard<std::mutex> lock(taskMutex);
-    
-    Task* task = getTaskById(taskId);
-    if (task) {
-        task->setAssignee(assigneeId);
-        saveToFile();
-        return true;
+    try {
+        std::lock_guard<std::mutex> lock(taskMutex);
+        
+        Task* task = getTaskById(taskId);
+        if (task) {
+            task->setAssignee(assigneeId);
+            saveToFile();
+            return true;
+        }
+        return false;
+    } catch (const std::exception& e) {
+        std::cerr << "Error assigning task: " << e.what() << std::endl;
+        return false;
     }
-    return false;
 }
 
 bool TaskManager::addTaskComment(int taskId, const std::string& comment, int userId) {
@@ -140,16 +161,22 @@ std::vector<Task> TaskManager::getRecentTasks(int limit) const {
 }
 
 void TaskManager::saveToFile() const {
-    std::ofstream file("data/tasks.db");
-    if (file.is_open()) {
-        file << nextTaskId << "\n";
-        for (const auto& task : tasks) {
-            file << task.getTaskId() << "|" << task.getTitle() << "|" 
-                 << task.getDescription() << "|" << static_cast<int>(task.getStatus()) << "|" 
-                 << static_cast<int>(task.getPriority()) << "|" << task.getAssigneeId() << "|" 
-                 << task.getReporterId() << "|" << task.getProjectKey() << "\n";
+    try {
+        std::ofstream file("data/tasks.db");
+        if (file.is_open()) {
+            file << nextTaskId << "\n";
+            for (const auto& task : tasks) {
+                file << task.getTaskId() << "|" << task.getTitle() << "|" 
+                     << task.getDescription() << "|" << static_cast<int>(task.getStatus()) << "|" 
+                     << static_cast<int>(task.getPriority()) << "|" << task.getAssigneeId() << "|" 
+                     << task.getReporterId() << "|" << task.getProjectKey() << "\n";
+            }
+            file.close();
+        } else {
+            std::cerr << "Failed to open tasks.db for writing" << std::endl;
         }
-        file.close();
+    } catch (const std::exception& e) {
+        std::cerr << "Error saving tasks to file: " << e.what() << std::endl;
     }
 }
 
