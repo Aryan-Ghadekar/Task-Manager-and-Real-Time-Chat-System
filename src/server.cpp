@@ -115,13 +115,47 @@ void processCommand(int clientSock, const std::string& command) {
             std::string title = (pos != std::string::npos) ? taskData.substr(0, pos) : taskData;
             std::string desc = (pos != std::string::npos) ? taskData.substr(pos + 3) : "";
             
-            int taskId = taskManager.createTask(title, desc, client->userId, "PROJ");
-            response = "[TASK] Created task PROJ-" + std::to_string(taskId) + ": " + title;
+            // FIX: Improved deadline parsing - check both title and description
+            int deadlineDays = 7; // Default
+            std::string fullText = title + " " + desc;
+            size_t deadlinePos = fullText.find("deadline:");
+            if (deadlinePos != std::string::npos) {
+                try {
+                    std::string deadlineStr = fullText.substr(deadlinePos + 9);
+                    size_t spacePos = deadlineStr.find(' ');
+                    if (spacePos != std::string::npos) {
+                        deadlineStr = deadlineStr.substr(0, spacePos);
+                    }
+                    deadlineDays = std::stoi(deadlineStr);
+                    
+                    // Remove deadline specification from description
+                    if (desc.find("deadline:") != std::string::npos) {
+                        size_t descDeadlinePos = desc.find("deadline:");
+                        desc = desc.substr(0, descDeadlinePos);
+                        // Trim trailing spaces
+                        while (!desc.empty() && desc.back() == ' ') desc.pop_back();
+                    }
+                } catch (const std::exception& e) {
+                    // Keep default if parsing fails
+                }
+            }
+            
+            int taskId = taskManager.createTask(title, desc, client->userId, "PROJ", deadlineDays);
+            response = "[TASK] Created task PROJ-" + std::to_string(taskId) + ": " + title + " (Deadline: " + std::to_string(deadlineDays) + " days)";
             
             NetworkUtils::broadcastToAll(clients, response);
             chatManager.sendTaskUpdate(client->userId, client->username, taskId, "Task created: " + title);
         }
         else if (cmd == "/assign" && parts.size() >= 3) {
+            // PERMISSION CHECK: Only PM and Admin can assign tasks
+            std::string assignerUsername = client->username;
+            User& assignerUser = users[assignerUsername];
+            
+            if (!assignerUser.hasPermission("assign_task")) {
+                sendSafeMessage(clientSock, "[ERROR] Only Project Managers and Admins can assign tasks");
+                return;
+            }
+            
             try {
                 int taskId = std::stoi(parts[1]);
                 int assigneeId = std::stoi(parts[2]);
@@ -273,6 +307,70 @@ void processCommand(int clientSock, const std::string& command) {
                 }
             }
             sendSafeMessage(clientSock, response);
+        }
+        else if (cmd == "/dashboard") {
+            // DASHBOARD: Generate comprehensive project dashboard
+            response = taskManager.generateDashboard(users);
+            sendSafeMessage(clientSock, response);
+        }
+        else if (cmd == "/recommend") {
+            // SMART ASSIGNMENT: Recommend best assignee
+            int recommendedId = taskManager.recommendBestAssignee(users);
+            if (recommendedId != -1) {
+                std::string recommendedUser;
+                for (const auto& user : users) {
+                    if (user.second.getUserId() == recommendedId) {
+                        recommendedUser = user.first;
+                        break;
+                    }
+                }
+                response = "[RECOMMEND] Best assignee: " + recommendedUser + " (ID: " + std::to_string(recommendedId) + ") - Current workload: " + std::to_string(taskManager.getActiveTaskCount(recommendedId)) + " tasks";
+            } else {
+                response = "[RECOMMEND] No suitable assignee found";
+            }
+            sendSafeMessage(clientSock, response);
+        }
+        else if (cmd == "/overdue") {
+            // Show overdue tasks
+            auto overdueTasks = taskManager.getOverdueTasks();
+            response = "[OVERDUE] Overdue tasks (" + std::to_string(overdueTasks.size()) + "):\n";
+            if (overdueTasks.empty()) {
+                response += "No overdue tasks.\n";
+            } else {
+                for (const auto& task : overdueTasks) {
+                    response += "- " + task.toString() + "\n";
+                }
+            }
+            sendSafeMessage(clientSock, response);
+        }
+        else if (cmd == "/help") {
+            // FIX: Add help command handler
+            response = "\n=== ENHANCED JIRA-like Task Manager Commands ===\n";
+            response += "AUTHENTICATION:\n";
+            response += "  /login <username> <password>  - Login to system\n\n";
+            response += "TASK MANAGEMENT:\n";
+            response += "  /create <title> | <desc> deadline:X - Create task (X=days)\n";
+            response += "  /assign <taskId> <userId>     - Assign task (PM/Admin only)\n";
+            response += "  /status <taskId> <status>     - Update status\n";
+            response += "  /priority <taskId> <priority> - Set priority\n";
+            response += "  /comment <taskId> <comment>   - Add comment\n";
+            response += "  /list                         - List all tasks\n";
+            response += "  /mytasks                      - Show my tasks\n\n";
+            response += "SMART FEATURES:\n";
+            response += "  /dashboard                    - Project dashboard\n";
+            response += "  /recommend                    - Best assignee\n";
+            response += "  /overdue                      - Overdue tasks\n\n";
+            response += "COMMUNICATION:\n";
+            response += "  /chat <message>               - Public message\n";
+            response += "  /pm <user> <message>          - Private message\n";
+            response += "  /online                       - Online users\n\n";
+            response += "SYSTEM:\n";
+            response += "  /help                         - This help\n";
+            response += "  /quit                         - Exit\n";
+            sendSafeMessage(clientSock, response);
+        }
+        else {
+            sendSafeMessage(clientSock, "[ERROR] Unknown command. Type /help for available commands");
         }
     } catch (const std::exception& e) {
         std::cerr << "Error processing command: " << e.what() << std::endl;
