@@ -16,8 +16,13 @@ std::string User::getRoleString() const {
 bool User::hasPermission(const std::string& action) const {
     if (role == UserRole::ADMIN) return true;
     
-    if (action == "create_task" || action == "update_task" || action == "assign_task") {
+    if (action == "create_task" || action == "update_task") {
         return role == UserRole::PROJECT_MANAGER || role == UserRole::DEVELOPER;
+    }
+    
+    // FIX: Only PM and Admin can assign tasks
+    if (action == "assign_task") {
+        return role == UserRole::PROJECT_MANAGER;
     }
     
     if (action == "delete_task") {

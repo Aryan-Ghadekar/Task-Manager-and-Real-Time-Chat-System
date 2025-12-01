@@ -37,21 +37,33 @@ void receiveMessages(int sock) {
 }
 
 void showHelp() {
-    std::cout << "\n=== JIRA-like Task Manager Commands ===\n";
-    std::cout << "/login <username> <password>  - Login to system\n";
-    std::cout << "/create <title> | <desc>      - Create new task\n";
-    std::cout << "/assign <taskId> <userId>     - Assign task to user\n";
-    std::cout << "/status <taskId> <status>     - Update task status (TODO/PROGRESS/REVIEW/DONE/BLOCKED)\n";
-    std::cout << "/priority <taskId> <priority> - Set priority (LOW/MEDIUM/HIGH/CRITICAL)\n";
-    std::cout << "/comment <taskId> <comment>   - Add comment to task\n";
-    std::cout << "/list [project]               - List all tasks or by project\n";
-    std::cout << "/mytasks                      - Show my assigned tasks\n";
-    std::cout << "/chat <message>               - Send chat message\n";
-    std::cout << "/pm <userId> <message>        - Send private message\n";
-    std::cout << "/online                       - Show online users\n";
-    std::cout << "/help                         - Show this help\n";
-    std::cout << "/quit                         - Exit application\n";
-    std::cout << "=====================================\n\n";
+    std::cout << "\n=== ENHANCED JIRA-like Task Manager Commands ===\n";
+    std::cout << "AUTHENTICATION:\n";
+    std::cout << "  /login <username> <password>  - Login to system\n\n";
+    
+    std::cout << "TASK MANAGEMENT:\n";
+    std::cout << "  /create <title> | <desc> [deadline:X] - Create task (X=days)\n";
+    std::cout << "  /assign <taskId> <userId>     - Assign task (PM/Admin only)\n";
+    std::cout << "  /status <taskId> <status>     - Update status (TODO/PROGRESS/REVIEW/DONE/BLOCKED)\n";
+    std::cout << "  /priority <taskId> <priority> - Set priority (LOW/MEDIUM/HIGH/CRITICAL)\n";
+    std::cout << "  /comment <taskId> <comment>   - Add comment to task\n";
+    std::cout << "  /list                         - List all tasks with deadlines\n";
+    std::cout << "  /mytasks                      - Show my assigned tasks\n\n";
+    
+    std::cout << "SMART FEATURES:\n";
+    std::cout << "  /dashboard                    - Show project dashboard\n";
+    std::cout << "  /recommend                    - Get best assignee recommendation\n";
+    std::cout << "  /overdue                      - Show overdue tasks\n\n";
+    
+    std::cout << "COMMUNICATION:\n";
+    std::cout << "  /chat <message>               - Send public message\n";
+    std::cout << "  /pm <user/userId> <message>   - Send private message (not logged)\n";
+    std::cout << "  /online                       - Show online users\n\n";
+    
+    std::cout << "SYSTEM:\n";
+    std::cout << "  /help                         - Show this help\n";
+    std::cout << "  /quit                         - Exit application\n";
+    std::cout << "================================================\n\n";
 }
 
 int main() {
