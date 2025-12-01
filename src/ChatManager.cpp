@@ -139,7 +139,7 @@ void ChatManager::saveToFile() const {
         std::ofstream file("data/chatlog.txt", std::ios::app);
         if (file.is_open() && !messages.empty()) {
             const auto& lastMessage = messages.back();
-            // PRIVACY UPDATE: Only log non-private messages
+            // Only save non-private messages in the chatlog.txt
             if (lastMessage.getType() != MessageType::PRIVATE) {
                 file << lastMessage.getTimestamp() << " [" << lastMessage.getSenderName() << "] " 
                      << lastMessage.getContent() << "\n";

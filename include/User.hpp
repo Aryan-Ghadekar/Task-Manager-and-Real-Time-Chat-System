@@ -22,10 +22,10 @@ public:
     User() : userId(-1), username(""), email(""), role(UserRole::DEVELOPER), isOnline(false), socketId(-1) {}
     User(int id, const std::string& name, const std::string& mail, UserRole r);
     
-    // Getters
+    // // Getters
     int getUserId() const { return userId; }
-    std::string getUsername() const { return username; }
-    std::string getEmail() const { return email; }
+    // std::string getUsername() const { return username; }
+    // std::string getEmail() const { return email; }
     UserRole getRole() const { return role; }
     bool getOnlineStatus() const { return isOnline; }
     int getSocketId() const { return socketId; }

@@ -37,7 +37,7 @@ void receiveMessages(int sock) {
 }
 
 void showHelp() {
-    std::cout << "\n=== ENHANCED JIRA-like Task Manager Commands ===\n";
+    std::cout << "\n============ Task Manager Commands ================\n";
     std::cout << "AUTHENTICATION:\n";
     std::cout << "  /login <username> <password>  - Login to system\n\n";
     
@@ -93,7 +93,7 @@ int main() {
         std::thread receiver(receiveMessages, sock);
         receiver.detach();
 
-        std::cout << "Connected to JIRA-like Task Manager\n";
+        std::cout << "Connected to the Task Manager\n";
         showHelp();
 
         std::string input;

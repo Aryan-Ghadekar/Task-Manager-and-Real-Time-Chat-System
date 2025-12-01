@@ -94,7 +94,7 @@ void NetworkUtils::sendToUser(const std::vector<ClientInfo>& clients, int userId
 }
 
 bool NetworkUtils::authenticateUser(const std::string& username, const std::string& password) {
-    // Simple authentication - in real implementation, use proper hashing
+    // Implement Hashing for future work (For a robust system)
     return username == password;
 }
 
