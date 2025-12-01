@@ -20,7 +20,7 @@ bool User::hasPermission(const std::string& action) const {
         return role == UserRole::PROJECT_MANAGER || role == UserRole::DEVELOPER;
     }
     
-    // FIX: Only PM and Admin can assign tasks
+    // Only PM and Admin can assign tasks
     if (action == "assign_task") {
         return role == UserRole::PROJECT_MANAGER;
     }
@@ -29,5 +29,5 @@ bool User::hasPermission(const std::string& action) const {
         return role == UserRole::PROJECT_MANAGER;
     }
     
-    return true; // Basic permissions for chat, view tasks, etc.
+    return true; 
 }
