@@ -1,7 +1,7 @@
 # JIRA-like Task Manager and Real-Time Chat System
 
 A **comprehensive C++ OOP-based project** that combines **enterprise-grade task management** with a **real-time chat system**. Built with **advanced socket programming, multithreading, and modern OOP principles**, this JIRA-inspired platform enables teams to collaborate effectively with real-time task tracking and communication.
----
+
 
 ## Enhanced Features
 
