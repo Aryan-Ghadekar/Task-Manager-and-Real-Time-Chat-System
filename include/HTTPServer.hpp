@@ -30,6 +30,9 @@ private:
   bool validateToken(const std::string &token, std::string &username);
   std::string getUsernameFromToken(const std::string &token);
 
+  // Helper function to escape JSON strings
+  std::string escapeJSON(const std::string &str);
+
   // JSON helpers
   std::string taskToJSON(const Task &task);
   std::string tasksToJSON(const std::vector<Task> &tasks);

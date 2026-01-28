@@ -34,17 +34,57 @@ std::string HTTPServer::getUsernameFromToken(const std::string &token) {
   return (it != sessions.end()) ? it->second : "";
 }
 
+// Helper function to escape JSON strings
+std::string HTTPServer::escapeJSON(const std::string &str) {
+  std::string escaped;
+  for (char c : str) {
+    switch (c) {
+    case '"':
+      escaped += "\\\"";
+      break;
+    case '\\':
+      escaped += "\\\\";
+      break;
+    case '\b':
+      escaped += "\\b";
+      break;
+    case '\f':
+      escaped += "\\f";
+      break;
+    case '\n':
+      escaped += "\\n";
+      break;
+    case '\r':
+      escaped += "\\r";
+      break;
+    case '\t':
+      escaped += "\\t";
+      break;
+    default:
+      if (c < 32) {
+        // Escape control characters
+        char buf[7];
+        snprintf(buf, sizeof(buf), "\\u%04x", (unsigned char)c);
+        escaped += buf;
+      } else {
+        escaped += c;
+      }
+    }
+  }
+  return escaped;
+}
+
 std::string HTTPServer::taskToJSON(const Task &task) {
   std::ostringstream oss;
   oss << "{"
       << "\"id\":" << task.getTaskId() << ","
-      << "\"title\":\"" << task.getTitle() << "\","
-      << "\"description\":\"" << task.getDescription() << "\","
+      << "\"title\":\"" << escapeJSON(task.getTitle()) << "\","
+      << "\"description\":\"" << escapeJSON(task.getDescription()) << "\","
       << "\"status\":\"" << task.getStatusString() << "\","
       << "\"priority\":\"" << task.getPriorityString() << "\","
       << "\"assigneeId\":" << task.getAssigneeId() << ","
       << "\"reporterId\":" << task.getReporterId() << ","
-      << "\"projectKey\":\"" << task.getProjectKey() << "\","
+      << "\"projectKey\":\"" << escapeJSON(task.getProjectKey()) << "\","
       << "\"deadline\":\"" << task.getDeadlineString() << "\","
       << "\"isOverdue\":" << (task.isOverdue() ? "true" : "false") << ","
       << "\"daysUntilDeadline\":" << task.getDaysUntilDeadline() << "}";
@@ -68,8 +108,8 @@ std::string HTTPServer::chatToJSON(const Chat &chat) {
   oss << "{"
       << "\"id\":" << chat.getMessageId() << ","
       << "\"senderId\":" << chat.getSenderId() << ","
-      << "\"senderName\":\"" << chat.getSenderName() << "\","
-      << "\"content\":\"" << chat.getContent() << "\","
+      << "\"senderName\":\"" << escapeJSON(chat.getSenderName()) << "\","
+      << "\"content\":\"" << escapeJSON(chat.getContent()) << "\","
       << "\"type\":\"" << chat.getTypeString() << "\","
       << "\"timestamp\":\"" << chat.getTimestamp() << "\","
       << "\"targetUserId\":" << chat.getTargetUserId() << ","
@@ -94,8 +134,8 @@ std::string HTTPServer::userToJSON(const User &user,
   std::ostringstream oss;
   oss << "{"
       << "\"id\":" << user.getUserId() << ","
-      << "\"username\":\"" << username << "\","
-      << "\"email\":\"" << user.getEmail() << "\","
+      << "\"username\":\"" << escapeJSON(username) << "\","
+      << "\"email\":\"" << escapeJSON(user.getEmail()) << "\","
       << "\"role\":\"" << user.getRoleString() << "\","
       << "\"isOnline\":" << (user.getOnlineStatus() ? "true" : "false") << "}";
   return oss.str();
@@ -116,12 +156,13 @@ std::string HTTPServer::usersToJSON(const std::map<std::string, User> &users) {
 }
 
 std::string HTTPServer::errorJSON(const std::string &message) {
-  return "{\"success\":false,\"error\":\"" + message + "\"}";
+  return "{\"success\":false,\"error\":\"" + escapeJSON(message) + "\"}";
 }
 
 std::string HTTPServer::successJSON(const std::string &message,
                                     const std::string &data) {
-  std::string result = "{\"success\":true,\"message\":\"" + message + "\"";
+  std::string result =
+      "{\"success\":true,\"message\":\"" + escapeJSON(message) + "\"";
   if (!data.empty()) {
     result += ",\"data\":" + data;
   }
@@ -470,7 +511,7 @@ void HTTPServer::setupRoutes() {
 
   // PUT /api/tasks/:id/priority - Update task priority
   server.Put(R"(/api/tasks/(\d+)/priority)", [this](const httplib::Request &req,
-                                                     httplib::Response &res) {
+                                                    httplib::Response &res) {
     std::string token = req.get_header_value("Authorization");
     if (token.substr(0, 7) == "Bearer ")
       token = token.substr(7);
@@ -492,7 +533,8 @@ void HTTPServer::setupRoutes() {
 
     priorityPos += 12;
     size_t priorityEnd = body.find("\"", priorityPos);
-    std::string priorityStr = body.substr(priorityPos, priorityEnd - priorityPos);
+    std::string priorityStr =
+        body.substr(priorityPos, priorityEnd - priorityPos);
 
     TaskPriority priority = TaskPriority::MEDIUM;
     if (priorityStr == "LOW")
@@ -509,7 +551,8 @@ void HTTPServer::setupRoutes() {
       res.set_content(successJSON("Priority updated", taskToJSON(*task)),
                       "application/json");
     } else {
-      res.set_content(errorJSON("Failed to update priority"), "application/json");
+      res.set_content(errorJSON("Failed to update priority"),
+                      "application/json");
     }
   });
 
@@ -517,7 +560,7 @@ void HTTPServer::setupRoutes() {
 
   // PUT /api/tasks/:id/assign - Assign task to user
   server.Put(R"(/api/tasks/(\d+)/assign)", [this](const httplib::Request &req,
-                                                   httplib::Response &res) {
+                                                  httplib::Response &res) {
     std::string token = req.get_header_value("Authorization");
     if (token.substr(0, 7) == "Bearer ")
       token = token.substr(7);
@@ -539,7 +582,8 @@ void HTTPServer::setupRoutes() {
 
     assigneePos += 14;
     size_t assigneeEnd = body.find_first_of(",}", assigneePos);
-    int assigneeId = std::stoi(body.substr(assigneePos, assigneeEnd - assigneePos));
+    int assigneeId =
+        std::stoi(body.substr(assigneePos, assigneeEnd - assigneePos));
 
     std::lock_guard<std::mutex> lock(serverMutex);
     int userId = users[username].getUserId();
@@ -556,7 +600,7 @@ void HTTPServer::setupRoutes() {
 
   // GET /api/tasks/:id/comments - Get task comments
   server.Get(R"(/api/tasks/(\d+)/comments)", [this](const httplib::Request &req,
-                                                     httplib::Response &res) {
+                                                    httplib::Response &res) {
     std::string token = req.get_header_value("Authorization");
     if (token.substr(0, 7) == "Bearer ")
       token = token.substr(7);
@@ -591,8 +635,9 @@ void HTTPServer::setupRoutes() {
   });
 
   // POST /api/tasks/:id/comments - Add task comment
-  server.Post(R"(/api/tasks/(\d+)/comments)", [this](const httplib::Request &req,
-                                                      httplib::Response &res) {
+  server.Post(R"(/api/tasks/(\d+)/comments)", [this](
+                                                  const httplib::Request &req,
+                                                  httplib::Response &res) {
     std::string token = req.get_header_value("Authorization");
     if (token.substr(0, 7) == "Bearer ")
       token = token.substr(7);
@@ -652,97 +697,100 @@ void HTTPServer::setupRoutes() {
   });
 
   // GET /api/tasks/by-status/:status - Get tasks by status
-  server.Get(R"(/api/tasks/by-status/([A-Z_]+))", [this](const httplib::Request &req,
-                                                         httplib::Response &res) {
-    std::string token = req.get_header_value("Authorization");
-    if (token.substr(0, 7) == "Bearer ")
-      token = token.substr(7);
+  server.Get(R"(/api/tasks/by-status/([A-Z_]+))",
+             [this](const httplib::Request &req, httplib::Response &res) {
+               std::string token = req.get_header_value("Authorization");
+               if (token.substr(0, 7) == "Bearer ")
+                 token = token.substr(7);
 
-    std::string username;
-    if (!validateToken(token, username)) {
-      res.set_content(errorJSON("Unauthorized"), "application/json");
-      return;
-    }
+               std::string username;
+               if (!validateToken(token, username)) {
+                 res.set_content(errorJSON("Unauthorized"), "application/json");
+                 return;
+               }
 
-    std::string statusStr = req.matches[1];
-    TaskStatus status = TaskStatus::TODO;
-    if (statusStr == "IN_PROGRESS")
-      status = TaskStatus::IN_PROGRESS;
-    else if (statusStr == "IN_REVIEW")
-      status = TaskStatus::IN_REVIEW;
-    else if (statusStr == "DONE")
-      status = TaskStatus::DONE;
-    else if (statusStr == "BLOCKED")
-      status = TaskStatus::BLOCKED;
+               std::string statusStr = req.matches[1];
+               TaskStatus status = TaskStatus::TODO;
+               if (statusStr == "IN_PROGRESS")
+                 status = TaskStatus::IN_PROGRESS;
+               else if (statusStr == "IN_REVIEW")
+                 status = TaskStatus::IN_REVIEW;
+               else if (statusStr == "DONE")
+                 status = TaskStatus::DONE;
+               else if (statusStr == "BLOCKED")
+                 status = TaskStatus::BLOCKED;
 
-    std::lock_guard<std::mutex> lock(serverMutex);
-    auto tasks = taskManager.getTasksByStatus(status);
-    res.set_content(successJSON("Tasks by status retrieved", tasksToJSON(tasks)),
-                    "application/json");
-  });
+               std::lock_guard<std::mutex> lock(serverMutex);
+               auto tasks = taskManager.getTasksByStatus(status);
+               res.set_content(
+                   successJSON("Tasks by status retrieved", tasksToJSON(tasks)),
+                   "application/json");
+             });
 
   // GET /api/tasks/by-project/:project - Get tasks by project
-  server.Get(R"(/api/tasks/by-project/([A-Z0-9]+))", [this](const httplib::Request &req,
-                                                             httplib::Response &res) {
-    std::string token = req.get_header_value("Authorization");
-    if (token.substr(0, 7) == "Bearer ")
-      token = token.substr(7);
+  server.Get(R"(/api/tasks/by-project/([A-Z0-9]+))",
+             [this](const httplib::Request &req, httplib::Response &res) {
+               std::string token = req.get_header_value("Authorization");
+               if (token.substr(0, 7) == "Bearer ")
+                 token = token.substr(7);
 
-    std::string username;
-    if (!validateToken(token, username)) {
-      res.set_content(errorJSON("Unauthorized"), "application/json");
-      return;
-    }
+               std::string username;
+               if (!validateToken(token, username)) {
+                 res.set_content(errorJSON("Unauthorized"), "application/json");
+                 return;
+               }
 
-    std::string project = req.matches[1];
+               std::string project = req.matches[1];
 
-    std::lock_guard<std::mutex> lock(serverMutex);
-    auto tasks = taskManager.getTasksByProject(project);
-    res.set_content(successJSON("Tasks by project retrieved", tasksToJSON(tasks)),
-                    "application/json");
-  });
+               std::lock_guard<std::mutex> lock(serverMutex);
+               auto tasks = taskManager.getTasksByProject(project);
+               res.set_content(successJSON("Tasks by project retrieved",
+                                           tasksToJSON(tasks)),
+                               "application/json");
+             });
 
   // ===== SMART ASSIGNMENT =====
 
   // GET /api/tasks/recommend-assignee - Get recommended assignee
-  server.Get("/api/tasks/recommend-assignee", [this](const httplib::Request &req,
-                                                     httplib::Response &res) {
-    std::string token = req.get_header_value("Authorization");
-    if (token.substr(0, 7) == "Bearer ")
-      token = token.substr(7);
+  server.Get("/api/tasks/recommend-assignee",
+             [this](const httplib::Request &req, httplib::Response &res) {
+               std::string token = req.get_header_value("Authorization");
+               if (token.substr(0, 7) == "Bearer ")
+                 token = token.substr(7);
 
-    std::string username;
-    if (!validateToken(token, username)) {
-      res.set_content(errorJSON("Unauthorized"), "application/json");
-      return;
-    }
+               std::string username;
+               if (!validateToken(token, username)) {
+                 res.set_content(errorJSON("Unauthorized"), "application/json");
+                 return;
+               }
 
-    std::lock_guard<std::mutex> lock(serverMutex);
-    int recommendedId = taskManager.recommendBestAssignee(users);
-    
-    if (recommendedId == -1) {
-      res.set_content(errorJSON("No suitable assignee found"), "application/json");
-      return;
-    }
+               std::lock_guard<std::mutex> lock(serverMutex);
+               int recommendedId = taskManager.recommendBestAssignee(users);
 
-    // Find username for recommended user
-    std::string recommendedUsername;
-    for (const auto &pair : users) {
-      if (pair.second.getUserId() == recommendedId) {
-        recommendedUsername = pair.first;
-        break;
-      }
-    }
+               if (recommendedId == -1) {
+                 res.set_content(errorJSON("No suitable assignee found"),
+                                 "application/json");
+                 return;
+               }
 
-    int workload = taskManager.getActiveTaskCount(recommendedId);
-    std::ostringstream oss;
-    oss << "{\"userId\":" << recommendedId
-        << ",\"username\":\"" << recommendedUsername << "\""
-        << ",\"workload\":" << workload << "}";
+               // Find username for recommended user
+               std::string recommendedUsername;
+               for (const auto &pair : users) {
+                 if (pair.second.getUserId() == recommendedId) {
+                   recommendedUsername = pair.first;
+                   break;
+                 }
+               }
 
-    res.set_content(successJSON("Recommended assignee", oss.str()),
-                    "application/json");
-  });
+               int workload = taskManager.getActiveTaskCount(recommendedId);
+               std::ostringstream oss;
+               oss << "{\"userId\":" << recommendedId << ",\"username\":\""
+                   << recommendedUsername << "\""
+                   << ",\"workload\":" << workload << "}";
+
+               res.set_content(successJSON("Recommended assignee", oss.str()),
+                               "application/json");
+             });
 
   // ===== PRIVATE MESSAGING =====
 
@@ -779,11 +827,13 @@ void HTTPServer::setupRoutes() {
 
     std::lock_guard<std::mutex> lock(serverMutex);
     int userId = users[username].getUserId();
-    int messageId = chatManager.sendPrivateMessage(userId, username, targetUserId, content);
+    int messageId =
+        chatManager.sendPrivateMessage(userId, username, targetUserId, content);
 
-    res.set_content(successJSON("Private message sent",
-                                "{\"messageId\":" + std::to_string(messageId) + "}"),
-                    "application/json");
+    res.set_content(
+        successJSON("Private message sent",
+                    "{\"messageId\":" + std::to_string(messageId) + "}"),
+        "application/json");
   });
 
   // GET /api/chat/private/:userId - Get private messages with user
@@ -804,78 +854,80 @@ void HTTPServer::setupRoutes() {
     std::lock_guard<std::mutex> lock(serverMutex);
     int userId = users[username].getUserId();
     auto messages = chatManager.getPrivateMessages(userId, otherUserId);
-    res.set_content(successJSON("Private messages retrieved", chatsToJSON(messages)),
-                    "application/json");
+    res.set_content(
+        successJSON("Private messages retrieved", chatsToJSON(messages)),
+        "application/json");
   });
 
   // ===== TASK MESSAGES =====
 
   // GET /api/tasks/:id/messages - Get task-related messages
-  server.Get(R"(/api/tasks/(\d+)/messages)", [this](const httplib::Request &req,
-                                                    httplib::Response &res) {
-    std::string token = req.get_header_value("Authorization");
-    if (token.substr(0, 7) == "Bearer ")
-      token = token.substr(7);
+  server.Get(R"(/api/tasks/(\d+)/messages)",
+             [this](const httplib::Request &req, httplib::Response &res) {
+               std::string token = req.get_header_value("Authorization");
+               if (token.substr(0, 7) == "Bearer ")
+                 token = token.substr(7);
 
-    std::string username;
-    if (!validateToken(token, username)) {
-      res.set_content(errorJSON("Unauthorized"), "application/json");
-      return;
-    }
+               std::string username;
+               if (!validateToken(token, username)) {
+                 res.set_content(errorJSON("Unauthorized"), "application/json");
+                 return;
+               }
 
-    int taskId = std::stoi(req.matches[1]);
+               int taskId = std::stoi(req.matches[1]);
 
-    std::lock_guard<std::mutex> lock(serverMutex);
-    auto messages = chatManager.getTaskMessages(taskId);
-    res.set_content(successJSON("Task messages retrieved", chatsToJSON(messages)),
-                    "application/json");
-  });
+               std::lock_guard<std::mutex> lock(serverMutex);
+               auto messages = chatManager.getTaskMessages(taskId);
+               res.set_content(successJSON("Task messages retrieved",
+                                           chatsToJSON(messages)),
+                               "application/json");
+             });
 
   // ===== STATISTICS =====
 
   // GET /api/stats - Get comprehensive statistics
-  server.Get("/api/stats", [this](const httplib::Request &req,
-                                  httplib::Response &res) {
-    std::string token = req.get_header_value("Authorization");
-    if (token.substr(0, 7) == "Bearer ")
-      token = token.substr(7);
+  server.Get("/api/stats",
+             [this](const httplib::Request &req, httplib::Response &res) {
+               std::string token = req.get_header_value("Authorization");
+               if (token.substr(0, 7) == "Bearer ")
+                 token = token.substr(7);
 
-    std::string username;
-    if (!validateToken(token, username)) {
-      res.set_content(errorJSON("Unauthorized"), "application/json");
-      return;
-    }
+               std::string username;
+               if (!validateToken(token, username)) {
+                 res.set_content(errorJSON("Unauthorized"), "application/json");
+                 return;
+               }
 
-    std::lock_guard<std::mutex> lock(serverMutex);
-    
-    // Get status counts
-    auto statusCounts = taskManager.getTaskStatusCount();
-    int todoCount = statusCounts[TaskStatus::TODO];
-    int inProgressCount = statusCounts[TaskStatus::IN_PROGRESS];
-    int inReviewCount = statusCounts[TaskStatus::IN_REVIEW];
-    int doneCount = statusCounts[TaskStatus::DONE];
-    int blockedCount = statusCounts[TaskStatus::BLOCKED];
-    int totalCount = todoCount + inProgressCount + inReviewCount + doneCount + blockedCount;
+               std::lock_guard<std::mutex> lock(serverMutex);
 
-    // Get overdue and due soon counts
-    int overdueCount = taskManager.getOverdueTasks().size();
-    int dueSoonCount = taskManager.getDueSoonTasks(3).size();
+               // Get status counts
+               auto statusCounts = taskManager.getTaskStatusCount();
+               int todoCount = statusCounts[TaskStatus::TODO];
+               int inProgressCount = statusCounts[TaskStatus::IN_PROGRESS];
+               int inReviewCount = statusCounts[TaskStatus::IN_REVIEW];
+               int doneCount = statusCounts[TaskStatus::DONE];
+               int blockedCount = statusCounts[TaskStatus::BLOCKED];
+               int totalCount = todoCount + inProgressCount + inReviewCount +
+                                doneCount + blockedCount;
 
-    std::ostringstream oss;
-    oss << "{"
-        << "\"total\":" << totalCount << ","
-        << "\"todo\":" << todoCount << ","
-        << "\"inProgress\":" << inProgressCount << ","
-        << "\"inReview\":" << inReviewCount << ","
-        << "\"done\":" << doneCount << ","
-        << "\"blocked\":" << blockedCount << ","
-        << "\"overdue\":" << overdueCount << ","
-        << "\"dueSoon\":" << dueSoonCount
-        << "}";
+               // Get overdue and due soon counts
+               int overdueCount = taskManager.getOverdueTasks().size();
+               int dueSoonCount = taskManager.getDueSoonTasks(3).size();
 
-    res.set_content(successJSON("Statistics retrieved", oss.str()),
-                    "application/json");
-  });
+               std::ostringstream oss;
+               oss << "{"
+                   << "\"total\":" << totalCount << ","
+                   << "\"todo\":" << todoCount << ","
+                   << "\"inProgress\":" << inProgressCount << ","
+                   << "\"inReview\":" << inReviewCount << ","
+                   << "\"done\":" << doneCount << ","
+                   << "\"blocked\":" << blockedCount << ","
+                   << "\"overdue\":" << overdueCount << ","
+                   << "\"dueSoon\":" << dueSoonCount << "}";
+
+               res.set_content(successJSON("Statistics retrieved", oss.str()),
+                               "application/json");
+             });
 
   // ===== USER MANAGEMENT =====
 
