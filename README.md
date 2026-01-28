@@ -2,11 +2,18 @@
 
 # Task Manager & Real-Time Chat System
 
-[![Platform](https://img.shields.io/badge/platform-macOS%20%7C%20Linux%20%7C%20Windows-lightgrey.svg?style=flat-square)](https://github.com/aryanghadekar)
-[![Backend](https://img.shields.io/badge/backend-C%2B%2B11-blue.svg?style=flat-square)](https://isocpp.org/)
-[![Frontend](https://img.shields.io/badge/frontend-React%20%7C%20Electron-61DAFB.svg?style=flat-square)](https://reactjs.org/)
-[![License](https://img.shields.io/badge/license-ISC-green.svg?style=flat-square)](LICENSE)
-[![Build Status](https://img.shields.io/badge/build-passing-success.svg?style=flat-square)](Makefile)
+[![Platform](https://img.shields.io/badge/platform-macOS%20%7C%20Linux%20%7C%20Windows-lightgrey?style=for-the-badge)](https://github.com/aryanghadekar)
+[![Backend](https://img.shields.io/badge/backend-C%2B%2B11-blue?style=for-the-badge)](https://isocpp.org/)
+[![Frontend](https://img.shields.io/badge/frontend-React%20%7C%20Electron-61DAFB?style=for-the-badge)](https://reactjs.org/)
+[![License](https://img.shields.io/badge/license-MIT-green?style=for-the-badge)](LICENSE)
+[![About](https://img.shields.io/badge/About%20the%20Project-234F1E?style=for-the-badge&logo=github&logoColor=white)](#-about-the-project)
+[![Architecture](https://img.shields.io/badge/Architecture-2196F3?style=for-the-badge&logo=blueprint&logoColor=white)](#-architecture)
+[![Screenshots](https://img.shields.io/badge/Screenshots-9C27B0?style=for-the-badge&logo=camera&logoColor=white)](#-screenshots)
+[![Getting Started](https://img.shields.io/badge/Getting%20Started-00BCD4?style=for-the-badge&logo=rocket&logoColor=white)](#-getting-started)
+[![Usage Guide](https://img.shields.io/badge/Usage%20Guide-FF9800?style=for-the-badge&logo=book&logoColor=white)](#-usage-guide)
+[![API Docs](https://img.shields.io/badge/API%20Docs-607D8B?style=for-the-badge&logo=postman&logoColor=white)](#-api-documentation)
+
+<br/>
 
 **A high-performance, cross-platform collaborative suite for agile teams.**  
 Seamlessly integrates JIRA-style task management with real-time communication.
@@ -15,26 +22,11 @@ Seamlessly integrates JIRA-style task management with real-time communication.
 
 </div>
 
----
 
-## 📖 Table of Contents
-- [About the Project](#-about-the-project)
-- [Key Features](#-key-features)
-- [Architecture](#%EF%B8%8F-architecture)
-- [Getting Started](#-getting-started)
-  - [Prerequisites](#prerequisites)
-  - [Installation](#installation)
-- [Usage Guide](#-usage-guide)
-  - [Running the Backend](#running-the-backend)
-  - [Running the Frontend](#running-the-frontend)
-- [API Documentation](#-api-documentation)
-- [Roadmap](#-roadmap)
-- [Contributing](#-contributing)
-- [License](#-license)
 
----
 
-## 📖 About the Project
+
+## About the Project
 
 The **Task Manager & Real-Time Chat System** is an enterprise-grade solution designed to bridge the gap between project management and team communication. Built with a robust **C++ backend** for maximum performance and a modern **React/Electron frontend** for a seamless user experience, it offers a unified workspace for developers, project managers, and QA testers.
 
@@ -51,39 +43,48 @@ The **Task Manager & Real-Time Chat System** is an enterprise-grade solution des
 
 ---
 
-## ✨ Key Features
+##  Key Features
 
-- **🛡️ Role-Based Access Control (RBAC)**: secure environments for Admins, Project Managers, Developers, and Testers.
-- **⚡ Real-Time Synchronization**: Instant updates for task status changes and chat messages.
-- **📊 Interactive Dashboard**: Visual overview of project health, including overdue tasks and workload distribution.
-- **💬 Integrated Chat**:
+- ** Role-Based Access Control (RBAC)**: secure environments for Admins, Project Managers, Developers, and Testers.
+- ** Real-Time Synchronization**: Instant updates for task status changes and chat messages.
+- ** Interactive Dashboard**: Visual overview of project health, including overdue tasks and workload distribution.
+- ** Integrated Chat**:
     - **Public Channels**: Team-wide announcements and discussions.
     - **Private Messaging**: Secure direct messages between team members.
     - **Privacy First**: Private messages are never logged to server files.
-- **🧠 Smart Assignment**: Intelligent algorithms to recommend task assignees based on current workload.
-- **📅 Deadline Tracking**: Built-in deadline management with visual overdue alerts.
+- ** Smart Assignment**: Intelligent algorithms to recommend task assignees based on current workload.
+- ** Deadline Tracking**: Built-in deadline management with visual overdue alerts.
 
 ---
 
-## 🏗️ Architecture
+### Screenshots
+
+- **Admin Login**
+  
+![Admin Login](assets/admin_login.png)
+
+- **Create Task**
+  
+![Create Task](assets/create_task.png) 
+
+- **Private Message**
+
+![Private Message](assets/private_message.png)
+
+- **Task Details** 
+![Task Details](assets/task_details.png) 
+
+
+## Architecture
+
 
 The system utilizes a dual-server architecture to support both legacy CLI clients and modern web/desktop frontends simultaneously.
 
-```mermaid
-graph TD
-    Client[Electron / React Frontend] -->|HTTP REST API :8081| APIServer[C++ HTTP API Server]
-    CLI[Command Line Client] -->|TCP Socket :8080| TCPServer[C++ TCP Server]
-    
-    subgraph "Backend System"
-        APIServer --> Manager[Task & Chat Manager]
-        TCPServer --> Manager
-        Manager --> DB[(File Storage DB)]
-    end
-```
+![System Architecture Diagram](assets/architecture.png) 
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
 
@@ -123,7 +124,7 @@ Ensure you have the following installed on your development machine:
 
 ---
 
-## 🏃 Usage Guide
+## Usage Guide
 
 ### Running the Backend
 
@@ -155,7 +156,7 @@ npm run electron:dev
 
 ---
 
-## 🔌 API Documentation
+## API Documentation
 
 The backend exposes a RESTful API on port `8081`. All endpoints typically require authorization via a specific token provided upon login.
 
@@ -170,7 +171,7 @@ The backend exposes a RESTful API on port `8081`. All endpoints typically requir
 
 ---
 
-## 👥 Demo Accounts
+## Demo Accounts
 
 Use these pre-configured accounts to explore different roles:
 
@@ -183,11 +184,11 @@ Use these pre-configured accounts to explore different roles:
 
 ---
 
-## 🤝 Contributing
+## Contributing
 
 Contributions are what make the open-source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
 
-1.  vFork the Project
+1.  Fork the Project
 2.  Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
 3.  Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
 4.  Push to the Branch (`git push origin feature/AmazingFeature`)
@@ -195,12 +196,9 @@ Contributions are what make the open-source community such an amazing place to l
 
 ---
 
-## 📜 License
+## License
 
-Distributed under the **ISC License**. See `LICENSE` for more information.
+Distributed under the **MIT License**. See `LICENSE` for more information.
 
 ---
 
-<div align="center">
-  <sub>Built with ❤️ by the Engineering Team.</sub>
-</div>
