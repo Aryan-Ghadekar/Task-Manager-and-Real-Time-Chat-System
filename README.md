@@ -79,8 +79,9 @@ The **Task Manager & Real-Time Chat System** is an enterprise-grade solution des
 
 
 The system utilizes a dual-server architecture to support both legacy CLI clients and modern web/desktop frontends simultaneously.
-
-![System Architecture Diagram](assets/architecture.png) 
+<div align="center">
+  <img src="assets/architecture.png" alt="System Architecture Diagram">
+</div>
 
 ---
 
