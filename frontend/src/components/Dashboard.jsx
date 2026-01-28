@@ -3,12 +3,15 @@ import api from '../api'
 import TaskList from './TaskList'
 import Chat from './Chat'
 import CreateTask from './CreateTask'
+import StatCard from './StatCard'
+import PrivateChat from './PrivateChat'
 import './Dashboard.css'
 
 function Dashboard({ user, onLogout }) {
     const [tasks, setTasks] = useState([])
     const [activeView, setActiveView] = useState('all') // 'all', 'my', 'overdue', 'due-soon'
     const [showCreateTask, setShowCreateTask] = useState(false)
+    const [showPrivateChat, setShowPrivateChat] = useState(false)
     const [loading, setLoading] = useState(true)
     const [stats, setStats] = useState(null)
 
@@ -78,6 +81,9 @@ function Dashboard({ user, onLogout }) {
                     </div>
                 </div>
                 <div className="header-right">
+                    <button className="btn btn-secondary" onClick={() => setShowPrivateChat(true)}>
+                        💬 Private Messages
+                    </button>
                     <button className="btn btn-primary" onClick={() => setShowCreateTask(true)}>
                         + New Task
                     </button>
@@ -91,6 +97,32 @@ function Dashboard({ user, onLogout }) {
             <div className="dashboard-content">
                 {/* Left Panel - Tasks */}
                 <div className="tasks-panel">
+                    {/* Statistics Panel */}
+                    {stats && (
+                        <div className="stats-panel">
+                            <StatCard
+                                title="Total Tasks"
+                                value={stats.total}
+                                color="blue"
+                            />
+                            <StatCard
+                                title="In Progress"
+                                value={stats.inProgress}
+                                color="green"
+                            />
+                            <StatCard
+                                title="Overdue"
+                                value={stats.overdue}
+                                color="red"
+                            />
+                            <StatCard
+                                title="Due Soon"
+                                value={stats.dueSoon}
+                                color="orange"
+                            />
+                        </div>
+                    )}
+
                     <div className="panel-header">
                         <h2>Tasks</h2>
                         <div className="view-tabs">
@@ -111,6 +143,12 @@ function Dashboard({ user, onLogout }) {
                                 onClick={() => setActiveView('overdue')}
                             >
                                 Overdue
+                            </button>
+                            <button
+                                className={`tab ${activeView === 'due-soon' ? 'active' : ''}`}
+                                onClick={() => setActiveView('due-soon')}
+                            >
+                                Due Soon
                             </button>
                         </div>
                     </div>
@@ -138,6 +176,14 @@ function Dashboard({ user, onLogout }) {
                 <CreateTask
                     onClose={() => setShowCreateTask(false)}
                     onTaskCreated={handleTaskCreated}
+                />
+            )}
+
+            {/* Private Chat Modal */}
+            {showPrivateChat && (
+                <PrivateChat
+                    currentUser={user}
+                    onClose={() => setShowPrivateChat(false)}
                 />
             )}
         </div>

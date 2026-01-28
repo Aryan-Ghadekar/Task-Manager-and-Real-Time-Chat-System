@@ -65,6 +65,27 @@
     border-right: 1px solid var(--border-color);
 }
 
+.stats-panel {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+    padding: 1.5rem 2rem;
+    background: var(--bg-primary);
+    border-bottom: 1px solid var(--border-color);
+}
+
+@media (max-width: 1400px) {
+    .stats-panel {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .stats-panel {
+        grid-template-columns: 1fr;
+    }
+}
+
 .panel-header {
     padding: 1.5rem 2rem;
     border-bottom: 1px solid var(--border-color);

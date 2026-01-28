@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import api from '../api'
 import './CreateTask.css'
 
@@ -6,8 +6,41 @@ function CreateTask({ onClose, onTaskCreated }) {
     const [title, setTitle] = useState('')
     const [description, setDescription] = useState('')
     const [deadlineDays, setDeadlineDays] = useState(7)
+    const [priority, setPriority] = useState('MEDIUM')
+    const [assigneeId, setAssigneeId] = useState('')
+    const [users, setUsers] = useState([])
     const [loading, setLoading] = useState(false)
+    const [loadingRecommendation, setLoadingRecommendation] = useState(false)
     const [error, setError] = useState('')
+
+    useEffect(() => {
+        loadUsers()
+    }, [])
+
+    const loadUsers = async () => {
+        try {
+            const response = await api.getAllUsers()
+            if (response.success) {
+                setUsers(response.data)
+            }
+        } catch (error) {
+            console.error('Failed to load users:', error)
+        }
+    }
+
+    const handleRecommendAssignee = async () => {
+        setLoadingRecommendation(true)
+        try {
+            const response = await api.getRecommendedAssignee()
+            if (response.success && response.data) {
+                setAssigneeId(response.data.userId.toString())
+            }
+        } catch (error) {
+            console.error('Failed to get recommendation:', error)
+        } finally {
+            setLoadingRecommendation(false)
+        }
+    }
 
     const handleSubmit = async (e) => {
         e.preventDefault()
@@ -17,7 +50,19 @@ function CreateTask({ onClose, onTaskCreated }) {
         try {
             const response = await api.createTask(title, description, deadlineDays)
 
-            if (response.success) {
+            if (response.success && response.data) {
+                const taskId = response.data.id
+
+                // Update priority if not default
+                if (priority !== 'MEDIUM') {
+                    await api.updateTaskPriority(taskId, priority)
+                }
+
+                // Assign task if assignee selected
+                if (assigneeId) {
+                    await api.assignTask(taskId, parseInt(assigneeId))
+                }
+
                 onTaskCreated()
             } else {
                 setError(response.error || 'Failed to create task')
@@ -72,6 +117,48 @@ function CreateTask({ onClose, onTaskCreated }) {
                             min="1"
                             max="365"
                         />
+                    </div>
+
+                    <div className="form-group">
+                        <label htmlFor="priority">Priority</label>
+                        <select
+                            id="priority"
+                            value={priority}
+                            onChange={(e) => setPriority(e.target.value)}
+                            className="priority-select"
+                        >
+                            <option value="LOW">Low</option>
+                            <option value="MEDIUM">Medium</option>
+                            <option value="HIGH">High</option>
+                            <option value="CRITICAL">Critical</option>
+                        </select>
+                    </div>
+
+                    <div className="form-group">
+                        <label htmlFor="assignee">Assignee</label>
+                        <div className="assignee-controls">
+                            <select
+                                id="assignee"
+                                value={assigneeId}
+                                onChange={(e) => setAssigneeId(e.target.value)}
+                                className="assignee-select"
+                            >
+                                <option value="">Unassigned</option>
+                                {users.map(user => (
+                                    <option key={user.id} value={user.id}>
+                                        {user.username} ({user.role})
+                                    </option>
+                                ))}
+                            </select>
+                            <button
+                                type="button"
+                                onClick={handleRecommendAssignee}
+                                className="btn-recommend"
+                                disabled={loadingRecommendation}
+                            >
+                                {loadingRecommendation ? 'Suggesting...' : '✨ Suggest Best'}
+                            </button>
+                        </div>
                     </div>
 
                     {error && (
