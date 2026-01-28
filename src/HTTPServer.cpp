@@ -415,23 +415,33 @@ void HTTPServer::setupRoutes() {
   // ===== CHAT =====
 
   // GET /api/chat - Get recent messages
-  server.Get("/api/chat", [this](const httplib::Request &req,
-                                 httplib::Response &res) {
-    std::string token = req.get_header_value("Authorization");
-    if (token.substr(0, 7) == "Bearer ")
-      token = token.substr(7);
+  server.Get("/api/chat",
+             [this](const httplib::Request &req, httplib::Response &res) {
+               std::string token = req.get_header_value("Authorization");
+               if (token.substr(0, 7) == "Bearer ")
+                 token = token.substr(7);
 
-    std::string username;
-    if (!validateToken(token, username)) {
-      res.set_content(errorJSON("Unauthorized"), "application/json");
-      return;
-    }
+               std::string username;
+               if (!validateToken(token, username)) {
+                 res.set_content(errorJSON("Unauthorized"), "application/json");
+                 return;
+               }
 
-    std::lock_guard<std::mutex> lock(serverMutex);
-    auto messages = chatManager.getRecentMessages(50);
-    res.set_content(successJSON("Messages retrieved", chatsToJSON(messages)),
-                    "application/json");
-  });
+               std::lock_guard<std::mutex> lock(serverMutex);
+               auto allMessages = chatManager.getRecentMessages(50);
+
+               // Filter out private messages - only show team messages
+               std::vector<Chat> teamMessages;
+               for (const auto &msg : allMessages) {
+                 if (msg.getType() != MessageType::PRIVATE) {
+                   teamMessages.push_back(msg);
+                 }
+               }
+
+               res.set_content(
+                   successJSON("Messages retrieved", chatsToJSON(teamMessages)),
+                   "application/json");
+             });
 
   // POST /api/chat - Send message
   server.Post(
