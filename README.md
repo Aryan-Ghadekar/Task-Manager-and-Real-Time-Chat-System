@@ -11,7 +11,7 @@
 [![Screenshots](https://img.shields.io/badge/Screenshots-9C27B0?style=for-the-badge&logo=camera&logoColor=white)](#-screenshots)
 [![Getting Started](https://img.shields.io/badge/Getting%20Started-00BCD4?style=for-the-badge&logo=rocket&logoColor=white)](#-getting-started)
 [![Usage Guide](https://img.shields.io/badge/Usage%20Guide-FF9800?style=for-the-badge&logo=book&logoColor=white)](#-usage-guide)
-[![API Docs](https://img.shields.io/badge/API%20Docs-607D8B?style=for-the-badge&logo=postman&logoColor=white)](#-api-documentation)
+[![Docs](https://img.shields.io/badge/API%20Docs-607D8B?style=for-the-badge&logo=postman&logoColor=white)](#-api-documentation)
 
 <br/>
 
