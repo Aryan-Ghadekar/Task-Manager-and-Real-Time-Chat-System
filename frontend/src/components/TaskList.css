@@ -77,7 +77,48 @@
 
 .task-actions {
     display: flex;
+    flex-direction: column;
     gap: 0.5rem;
+}
+
+.action-row {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.status-select,
+.priority-select,
+.assignee-select {
+    flex: 1;
+    padding: 0.5rem;
+    font-size: 0.875rem;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    cursor: pointer;
+}
+
+.status-select:disabled,
+.priority-select:disabled,
+.assignee-select:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.btn-details {
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+    background-color: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.btn-details:hover {
+    background-color: var(--primary-dark);
 }
 
 .status-select {

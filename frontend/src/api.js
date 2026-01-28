@@ -131,6 +131,117 @@ class APIClient {
         });
         return response.data;
     }
+
+    // ===== NEW API METHODS =====
+
+    // Priority Management
+    async updateTaskPriority(taskId, priority) {
+        const response = await axios.put(`${API_BASE_URL}/tasks/${taskId}/priority`, {
+            priority
+        }, {
+            headers: this.getHeaders()
+        });
+        return response.data;
+    }
+
+    // Task Assignment
+    async assignTask(taskId, assigneeId) {
+        const response = await axios.put(`${API_BASE_URL}/tasks/${taskId}/assign`, {
+            assigneeId
+        }, {
+            headers: this.getHeaders()
+        });
+        return response.data;
+    }
+
+    // Task Comments
+    async getTaskComments(taskId) {
+        const response = await axios.get(`${API_BASE_URL}/tasks/${taskId}/comments`, {
+            headers: this.getHeaders()
+        });
+        return response.data;
+    }
+
+    async addTaskComment(taskId, comment) {
+        const response = await axios.post(`${API_BASE_URL}/tasks/${taskId}/comments`, {
+            comment
+        }, {
+            headers: this.getHeaders()
+        });
+        return response.data;
+    }
+
+    // Advanced Filtering
+    async getDueSoonTasks(days = 3) {
+        const response = await axios.get(`${API_BASE_URL}/tasks/due-soon?days=${days}`, {
+            headers: this.getHeaders()
+        });
+        return response.data;
+    }
+
+    async getTasksByStatus(status) {
+        const response = await axios.get(`${API_BASE_URL}/tasks/by-status/${status}`, {
+            headers: this.getHeaders()
+        });
+        return response.data;
+    }
+
+    async getTasksByProject(project) {
+        const response = await axios.get(`${API_BASE_URL}/tasks/by-project/${project}`, {
+            headers: this.getHeaders()
+        });
+        return response.data;
+    }
+
+    // Smart Assignment
+    async getRecommendedAssignee() {
+        const response = await axios.get(`${API_BASE_URL}/tasks/recommend-assignee`, {
+            headers: this.getHeaders()
+        });
+        return response.data;
+    }
+
+    // Private Messaging
+    async sendPrivateMessage(targetUserId, content) {
+        const response = await axios.post(`${API_BASE_URL}/chat/private`, {
+            targetUserId,
+            content
+        }, {
+            headers: this.getHeaders()
+        });
+        return response.data;
+    }
+
+    async getPrivateMessages(userId) {
+        const response = await axios.get(`${API_BASE_URL}/chat/private/${userId}`, {
+            headers: this.getHeaders()
+        });
+        return response.data;
+    }
+
+    // Task Messages
+    async getTaskMessages(taskId) {
+        const response = await axios.get(`${API_BASE_URL}/tasks/${taskId}/messages`, {
+            headers: this.getHeaders()
+        });
+        return response.data;
+    }
+
+    // Statistics
+    async getStats() {
+        const response = await axios.get(`${API_BASE_URL}/stats`, {
+            headers: this.getHeaders()
+        });
+        return response.data;
+    }
+
+    // Get All Users
+    async getAllUsers() {
+        const response = await axios.get(`${API_BASE_URL}/users`, {
+            headers: this.getHeaders()
+        });
+        return response.data;
+    }
 }
 
 export default new APIClient();

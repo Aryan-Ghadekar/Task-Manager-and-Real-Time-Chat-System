@@ -7,14 +7,19 @@ import './Dashboard.css'
 
 function Dashboard({ user, onLogout }) {
     const [tasks, setTasks] = useState([])
-    const [activeView, setActiveView] = useState('all') // 'all', 'my', 'overdue'
+    const [activeView, setActiveView] = useState('all') // 'all', 'my', 'overdue', 'due-soon'
     const [showCreateTask, setShowCreateTask] = useState(false)
     const [loading, setLoading] = useState(true)
+    const [stats, setStats] = useState(null)
 
     useEffect(() => {
         loadTasks()
+        loadStats()
         // Refresh tasks every 5 seconds
-        const interval = setInterval(loadTasks, 5000)
+        const interval = setInterval(() => {
+            loadTasks()
+            loadStats()
+        }, 5000)
         return () => clearInterval(interval)
     }, [activeView])
 
@@ -25,6 +30,8 @@ function Dashboard({ user, onLogout }) {
                 response = await api.getMyTasks()
             } else if (activeView === 'overdue') {
                 response = await api.getOverdueTasks()
+            } else if (activeView === 'due-soon') {
+                response = await api.getDueSoonTasks(3)
             } else {
                 response = await api.getTasks()
             }
@@ -36,6 +43,17 @@ function Dashboard({ user, onLogout }) {
             console.error('Failed to load tasks:', error)
         } finally {
             setLoading(false)
+        }
+    }
+
+    const loadStats = async () => {
+        try {
+            const response = await api.getStats()
+            if (response.success && response.data) {
+                setStats(response.data)
+            }
+        } catch (error) {
+            console.error('Failed to load stats:', error)
         }
     }
 

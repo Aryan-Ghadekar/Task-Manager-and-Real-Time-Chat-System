@@ -1,9 +1,27 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import api from '../api'
+import TaskDetail from './TaskDetail'
 import './TaskList.css'
 
 function TaskList({ tasks, onTaskUpdated }) {
     const [updatingTask, setUpdatingTask] = useState(null)
+    const [users, setUsers] = useState([])
+    const [selectedTask, setSelectedTask] = useState(null)
+
+    useEffect(() => {
+        loadUsers()
+    }, [])
+
+    const loadUsers = async () => {
+        try {
+            const response = await api.getAllUsers()
+            if (response.success) {
+                setUsers(response.data)
+            }
+        } catch (error) {
+            console.error('Failed to load users:', error)
+        }
+    }
 
     const handleStatusChange = async (taskId, newStatus) => {
         setUpdatingTask(taskId)
@@ -12,6 +30,30 @@ function TaskList({ tasks, onTaskUpdated }) {
             onTaskUpdated()
         } catch (error) {
             console.error('Failed to update task:', error)
+        } finally {
+            setUpdatingTask(null)
+        }
+    }
+
+    const handlePriorityChange = async (taskId, newPriority) => {
+        setUpdatingTask(taskId)
+        try {
+            await api.updateTaskPriority(taskId, newPriority)
+            onTaskUpdated()
+        } catch (error) {
+            console.error('Failed to update priority:', error)
+        } finally {
+            setUpdatingTask(null)
+        }
+    }
+
+    const handleAssignTask = async (taskId, assigneeId) => {
+        setUpdatingTask(taskId)
+        try {
+            await api.assignTask(taskId, parseInt(assigneeId))
+            onTaskUpdated()
+        } catch (error) {
+            console.error('Failed to assign task:', error)
         } finally {
             setUpdatingTask(null)
         }
@@ -84,21 +126,66 @@ function TaskList({ tasks, onTaskUpdated }) {
                     </div>
 
                     <div className="task-actions">
-                        <select
-                            value={task.status}
-                            onChange={(e) => handleStatusChange(task.id, e.target.value)}
-                            disabled={updatingTask === task.id}
-                            className="status-select"
-                        >
-                            <option value="TODO">To Do</option>
-                            <option value="IN_PROGRESS">In Progress</option>
-                            <option value="IN_REVIEW">In Review</option>
-                            <option value="DONE">Done</option>
-                            <option value="BLOCKED">Blocked</option>
-                        </select>
+                        <div className="action-row">
+                            <select
+                                value={task.status}
+                                onChange={(e) => handleStatusChange(task.id, e.target.value)}
+                                disabled={updatingTask === task.id}
+                                className="status-select"
+                            >
+                                <option value="TODO">To Do</option>
+                                <option value="IN_PROGRESS">In Progress</option>
+                                <option value="IN_REVIEW">In Review</option>
+                                <option value="DONE">Done</option>
+                                <option value="BLOCKED">Blocked</option>
+                            </select>
+
+                            <select
+                                value={task.priority}
+                                onChange={(e) => handlePriorityChange(task.id, e.target.value)}
+                                disabled={updatingTask === task.id}
+                                className="priority-select"
+                            >
+                                <option value="LOW">Low</option>
+                                <option value="MEDIUM">Medium</option>
+                                <option value="HIGH">High</option>
+                                <option value="CRITICAL">Critical</option>
+                            </select>
+                        </div>
+
+                        <div className="action-row">
+                            <select
+                                value={task.assigneeId || ''}
+                                onChange={(e) => handleAssignTask(task.id, e.target.value)}
+                                disabled={updatingTask === task.id}
+                                className="assignee-select"
+                            >
+                                <option value="">Unassigned</option>
+                                {users.map(user => (
+                                    <option key={user.id} value={user.id}>
+                                        {user.username} ({user.role})
+                                    </option>
+                                ))}
+                            </select>
+
+                            <button
+                                onClick={() => setSelectedTask(task)}
+                                className="btn-details"
+                            >
+                                View Details
+                            </button>
+                        </div>
                     </div>
                 </div>
             ))}
+
+            {selectedTask && (
+                <TaskDetail
+                    task={selectedTask}
+                    onClose={() => setSelectedTask(null)}
+                    onTaskUpdated={onTaskUpdated}
+                />
+            )}
         </div>
     )
 }
