@@ -590,7 +590,7 @@ void HTTPServer::setupRoutes() {
       return;
     }
 
-    assigneePos += 14;
+    assigneePos += 13;
     size_t assigneeEnd = body.find_first_of(",}", assigneePos);
     int assigneeId =
         std::stoi(body.substr(assigneePos, assigneeEnd - assigneePos));
@@ -963,7 +963,10 @@ void HTTPServer::setupRoutes() {
 void HTTPServer::start(int port) {
   std::cout << "Starting HTTP API server on port " << port << "..."
             << std::endl;
-  server.listen("0.0.0.0", port);
+  if (!server.listen("0.0.0.0", port)) {
+    std::cerr << "ERROR: Failed to bind/listen on port " << port
+              << " (Port might be in use or permission denied)" << std::endl;
+  }
 }
 
 void HTTPServer::stop() { server.stop(); }
