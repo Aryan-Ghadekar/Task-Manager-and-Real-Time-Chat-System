@@ -6,8 +6,8 @@ OBJDIR = obj
 DATADIR = data
 
 # Source files
-SERVER_SOURCES = $(SRCDIR)/server.cpp $(SRCDIR)/TaskManager.cpp $(SRCDIR)/ChatManager.cpp $(SRCDIR)/Task.cpp $(SRCDIR)/Chat.cpp $(SRCDIR)/User.cpp $(SRCDIR)/NetworkUtils.cpp
-CLIENT_SOURCES = $(SRCDIR)/client.cpp $(SRCDIR)/Task.cpp $(SRCDIR)/Chat.cpp $(SRCDIR)/User.cpp $(SRCDIR)/NetworkUtils.cpp
+SERVER_SOURCES = $(SRCDIR)/server.cpp $(SRCDIR)/TaskManager.cpp $(SRCDIR)/ChatManager.cpp $(SRCDIR)/Task.cpp $(SRCDIR)/Chat.cpp $(SRCDIR)/User.cpp $(SRCDIR)/NetworkUtils.cpp $(SRCDIR)/SocketAbstraction.cpp
+CLIENT_SOURCES = $(SRCDIR)/client.cpp $(SRCDIR)/Task.cpp $(SRCDIR)/Chat.cpp $(SRCDIR)/User.cpp $(SRCDIR)/NetworkUtils.cpp $(SRCDIR)/SocketAbstraction.cpp
 
 # Object files
 SERVER_OBJECTS = $(SERVER_SOURCES:$(SRCDIR)/%.cpp=$(OBJDIR)/%.o)
