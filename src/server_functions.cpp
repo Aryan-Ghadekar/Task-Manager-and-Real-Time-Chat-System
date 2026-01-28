@@ -1,6 +1,5 @@
 // Enhanced JIRA-like Server with Error Handling - Cross-Platform
 #include "../include/ChatManager.hpp"
-#include "../include/HTTPServer.hpp"
 #include "../include/NetworkUtils.hpp"
 #include "../include/SocketAbstraction.hpp"
 #include "../include/TaskManager.hpp"
@@ -490,27 +489,6 @@ int main() {
 
     initializeUsers();
 
-    std::cout << "=== JIRA-like Task Manager - Dual Server Mode ==="
-              << std::endl;
-    std::cout << "TCP Socket Server: port 8080 (for CLI clients)" << std::endl;
-    std::cout << "HTTP API Server: port 8081 (for frontend)" << std::endl;
-    std::cout << "Available users: admin, pm1, dev1, tester1" << std::endl;
-    std::cout << "================================================="
-              << std::endl;
-
-    // Start HTTP API server in separate thread
-    std::thread httpThread([&]() {
-      try {
-        HTTPServer httpServer(taskManager, chatManager, users, serverMutex);
-        httpServer.setupRoutes();
-        httpServer.start(8081);
-      } catch (const std::exception &e) {
-        std::cerr << "HTTP Server error: " << e.what() << std::endl;
-      }
-    });
-    httpThread.detach();
-
-    // Continue with TCP server in main thread
     SocketHandle serverSock = SocketAbstraction::createSocket();
     if (!SocketAbstraction::isValidSocket(serverSock)) {
       std::cerr << "Failed to create socket" << std::endl;
@@ -539,10 +517,10 @@ int main() {
       return -1;
     }
 
-    std::cout << "TCP Socket Server running on port 8080..." << std::endl;
-    std::cout << "Starting HTTP API server on port 8081..." << std::endl;
-    std::cout << "Server started successfully. Waiting for connections..."
-              << std::endl;
+    std::cout << "JIRA-like Task Manager Server running on port 8080...\n";
+    std::cout << "Available users: admin, pm1, dev1, tester1 (password: same "
+                 "as username)\n";
+    std::cout << "Server started successfully. Waiting for connections...\n";
 
     while (true) {
       SocketHandle clientSock = SocketAbstraction::acceptSocket(serverSock);
