@@ -412,6 +412,29 @@ void HTTPServer::setupRoutes() {
     }
   });
 
+  // DELETE /api/tasks/:id - Delete a task
+  server.Delete(R"(/api/tasks/(\d+))", [this](const httplib::Request &req,
+                                              httplib::Response &res) {
+    std::string token = req.get_header_value("Authorization");
+    if (token.substr(0, 7) == "Bearer ")
+      token = token.substr(7);
+
+    std::string username;
+    if (!validateToken(token, username)) {
+      res.set_content(errorJSON("Unauthorized"), "application/json");
+      return;
+    }
+
+    int taskId = std::stoi(req.matches[1]);
+
+    std::lock_guard<std::mutex> lock(serverMutex);
+    if (taskManager.deleteTask(taskId)) {
+      res.set_content(successJSON("Task deleted"), "application/json");
+    } else {
+      res.set_content(errorJSON("Task not found"), "application/json");
+    }
+  });
+
   // ===== CHAT =====
 
   // GET /api/chat - Get recent messages

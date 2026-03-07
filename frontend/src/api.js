@@ -242,6 +242,14 @@ class APIClient {
         });
         return response.data;
     }
+
+    // Delete Task
+    async deleteTask(taskId) {
+        const response = await axios.delete(`${API_BASE_URL}/tasks/${taskId}`, {
+            headers: this.getHeaders()
+        });
+        return response.data;
+    }
 }
 
 export default new APIClient();
