@@ -22,6 +22,7 @@ public:
     bool updateTaskPriority(int taskId, TaskPriority priority, int userId);
     bool assignTask(int taskId, int assigneeId, int userId);
     bool addTaskComment(int taskId, const std::string& comment, int userId);
+    bool deleteTask(int taskId);
     
     // SMART ASSIGNMENT: Workload-based assignment
     int recommendBestAssignee(const std::map<std::string, User>& users) const;
