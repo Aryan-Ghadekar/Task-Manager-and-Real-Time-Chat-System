@@ -7,6 +7,7 @@ function TaskList({ tasks, onTaskUpdated }) {
     const [updatingTask, setUpdatingTask] = useState(null)
     const [users, setUsers] = useState([])
     const [selectedTask, setSelectedTask] = useState(null)
+    const [deletingTask, setDeletingTask] = useState(null)
 
     useEffect(() => {
         loadUsers()
@@ -44,6 +45,19 @@ function TaskList({ tasks, onTaskUpdated }) {
             console.error('Failed to update priority:', error)
         } finally {
             setUpdatingTask(null)
+        }
+    }
+
+    const handleDeleteTask = async (taskId, taskTitle) => {
+        if (!window.confirm(`Delete task "${taskTitle}"? This cannot be undone.`)) return
+        setDeletingTask(taskId)
+        try {
+            await api.deleteTask(taskId)
+            onTaskUpdated()
+        } catch (error) {
+            console.error('Failed to delete task:', error)
+        } finally {
+            setDeletingTask(null)
         }
     }
 
@@ -173,6 +187,15 @@ function TaskList({ tasks, onTaskUpdated }) {
                                 className="btn-details"
                             >
                                 View Details
+                            </button>
+
+                            <button
+                                onClick={() => handleDeleteTask(task.id, task.title)}
+                                disabled={deletingTask === task.id || updatingTask === task.id}
+                                className="btn-delete"
+                                title="Delete task"
+                            >
+                                {deletingTask === task.id ? '...' : '🗑️'}
                             </button>
                         </div>
                     </div>
